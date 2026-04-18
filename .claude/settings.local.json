@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(node --input-type=module)",
+      "Bash(grep -rn \"import.*from.*['\\\\\"]\\\\.\\\\..*['\\\\\"]$\" \"d:/Projets/GIA-SAAS/src/modules\" --include=\"*.js\")",
+      "Bash(PGPASSWORD=root psql -U postgres -h localhost -d PushSMS -f src/shared/config/database/migration_v2.sql)",
+      "Bash(where psql *)",
+      "Read(//c/Program Files/PostgreSQL//**)",
+      "Read(//c/Program Files \\(x86\\)/**)",
+      "Bash(find /c -name \"psql.exe\")",
+      "Bash(\"/c/Program Files/PostgreSQL/18/bin/psql.exe\" *)",
+      "Bash(PGPASSWORD=root \"/c/Program Files/PostgreSQL/18/bin/psql.exe\" -U postgres -h localhost -d PushSMS -c \"SELECT id, name, slug FROM tenants LIMIT 5;\")",
+      "Bash(node -e ' *)",
+      "Bash('/c/Program Files/PostgreSQL/18/bin/psql.exe' -U postgres -h localhost -d PushSMS -c ' *)"
+    ],
+    "additionalDirectories": [
+      "d:\\Projets\\pushsms-frontend\\components\\layout",
+      "d:\\Projets\\pushsms-frontend\\app\\(dashboard)\\campaigns",
+      "d:\\Projets\\pushsms-frontend\\app\\(dashboard)\\campaigns\\[id]"
+    ]
+  }
+}

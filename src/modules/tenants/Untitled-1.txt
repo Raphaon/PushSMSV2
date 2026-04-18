@@ -1,0 +1,244 @@
+
+
+class OptOut {
+  +id: UUID
+  +tenantId: UUID
+  +contactId: UUID
+  +phoneNumber: String
+  +channel: String
+  +reason: String
+  +processedByUserId: UUID
+  +optedOutAt: DateTime
+  --
+  +register()
+  +verify(phone: String): Boolean
+  +lift()
+  +exportRegistry()
+}
+
+'==============================
+' MODULE MESSAGERIE
+'==============================
+class SenderId {
+  +id: UUID
+  +tenantId: UUID
+  +value: String
+  +type: String
+  +status: String
+  +createdAt: DateTime
+  +updatedAt: DateTime
+  --
+  +create()
+  +validateFormat(): Boolean
+  +submitForApproval()
+  +approve()
+  +reject()
+  +deactivate()
+}
+
+class SmsTemplate {
+  +id: UUID
+  +tenantId: UUID
+  +name: String
+  +body: Text
+  +variables: JSON
+  +category: String
+  +isActive: Boolean
+  +createdAt: DateTime
+  +updatedAt: DateTime
+  --
+  +create()
+  +update()
+  +render(data: Map): String
+  +validateVariables(): Boolean
+  +preview(data: Map): String
+  +activate()
+  +deactivate()
+  +countParts(): Integer
+}
+
+class Campaign {
+  +id: UUID
+  +tenantId: UUID
+  +createdByUserId: UUID
+  +senderId: UUID
+  +contactListId: UUID
+  +templateId: UUID
+  +name: String
+  +messageBody: Text
+  +type: String
+  +status: String
+  +scheduledAt: DateTime
+  +launchedAt: DateTime
+  +completedAt: DateTime
+  +targetCount: Integer
+  +sentCount: Integer
+  +deliveredCount: Integer
+  +failedCount: Integer
+  +estimatedCost: Decimal
+  +actualCost: Decimal
+  +createdAt: DateTime
+  +updatedAt: DateTime
+  --
+  +createDraft()
+  +updateContent()
+  +attachSender(sender: SenderId)
+  +attachAudience(list: ContactList)
+  +attachTemplate(template: SmsTemplate)
+  +estimateCost(): Decimal
+  +validateBeforeLaunch(): Boolean
+  +schedule(date: DateTime)
+  +launch()
+  +pause()
+  +resume()
+  +cancel()
+  +complete()
+  +refreshStats()
+  +generateRecipients()
+  +generateReport()
+  +getDeliveryRate(): Float
+}
+
+class CampaignRecipient {
+  +id: UUID
+  +campaignId: UUID
+  +tenantId: UUID
+  +contactId: UUID
+  +phoneNumber: String
+  +status: String
+  +createdAt: DateTime
+  --
+  +freezeAudienceEntry()
+  +markQueued()
+  +markSent()
+  +markDelivered()
+  +markFailed()
+  +markSkipped()
+}
+
+class Message {
+  +id: UUID
+  +tenantId: UUID
+  +campaignId: UUID
+  +campaignRecipientId: UUID
+  +contactId: UUID
+  +providerId: UUID
+  +destinationNumber: String
+  +senderValue: String
+  +body: Text
+  +partsCount: Integer
+  +unitPrice: Decimal
+  +totalPrice: Decimal
+  +providerMessageId: String
+  +status: String
+  +queuedAt: DateTime
+  +sentAt: DateTime
+  +deliveredAt: DateTime
+  +failedAt: DateTime
+  +failureReason: String
+  +createdAt: DateTime
+  --
+  +buildFromCampaign()
+  +computeParts(): Integer
+  +computeCost(): Decimal
+  +queue()
+  +send()
+  +markSent()
+  +markDelivered()
+  +markFailed(reason: String)
+  +retry()
+  +attachProviderReference(ref: String)
+  +getTimeline()
+}
+
+class MessageEvent {
+  +id: UUID
+  +messageId: UUID
+  +eventType: String
+  +eventDate: DateTime
+  +providerStatus: String
+  +rawPayload: JSON
+  +reasonCode: String
+  --
+  +record()
+  +fromProviderCallback()
+  +isTerminal(): Boolean
+  +parseProviderStatus()
+}
+
+class SmsProvider {
+  +id: UUID
+  +name: String
+  +apiBaseUrl: String
+  +authType: String
+  +status: String
+  +priority: Integer
+  +createdAt: DateTime
+  --
+  +authenticate()
+  +sendMessage(message: Message)
+  +queryDeliveryStatus(providerMessageId: String)
+  +parseCallback(payload: JSON)
+  +healthCheck()
+  +activate()
+  +deactivate()
+  +updatePriority(priority: Integer)
+}
+
+class ProviderPricing {
+  +id: UUID
+  +providerId: UUID
+  +countryCode: String
+  +currency: String
+  +pricePerSms: Decimal
+  +pricePerPart: Decimal
+  +effectiveFrom: DateTime
+  +effectiveTo: DateTime
+  --
+  +getCurrentPrice(countryCode: String): Decimal
+  +calculateCost(parts: Integer): Decimal
+  +isEffective(): Boolean
+  +expire()
+}
+
+'==============================
+' RELATIONS
+'==============================
+Tenant "1" -- "*" User : possède >
+Tenant "1" -- "1" Wallet : possède >
+Tenant "1" -- "*" ApiKey : expose >
+Tenant "1" -- "*" PaymentTransaction : effectue >
+Tenant "1" -- "*" WalletTransaction : journalise >
+Tenant "1" -- "*" Contact : gère >
+Tenant "1" -- "*" ContactList : organise >
+Tenant "1" -- "*" SenderId : possède >
+Tenant "1" -- "*" SmsTemplate : définit >
+Tenant "1" -- "*" Campaign : crée >
+Tenant "1" -- "*" AuditLog : trace >
+
+User "1" -- "*" AuditLog : déclenche >
+User "1" -- "*" Campaign : crée >
+User "0..1" -- "*" OptOut : traite >
+
+Wallet "1" -- "*" WalletTransaction : contient >
+PaymentTransaction "0..1" -- "*" WalletTransaction : source financière >
+Campaign "0..1" -- "*" WalletTransaction : débit lié à >
+
+ContactList "1" -- "*" ContactListMember : contient >
+Contact "1" -- "*" ContactListMember : appartient >
+Contact "0..1" -- "*" OptOut : concerne >
+
+Campaign "*" -- "1" SenderId : utilise >
+Campaign "*" -- "0..1" ContactList : cible >
+Campaign "*" -- "0..1" SmsTemplate : applique >
+Campaign "1" -- "*" CampaignRecipient : cible >
+Contact "0..1" -- "*" CampaignRecipient : référence >
+
+Campaign "1" -- "*" Message : génère >
+CampaignRecipient "0..1" -- "0..1" Message : matérialise >
+Contact "0..1" -- "*" Message : reçoit >
+SmsProvider "0..1" -- "*" Message : achemine >
+Message "1" -- "*" MessageEvent : produit >
+SmsProvider "1" -- "*" ProviderPricing : tarife >
+
+@enduml

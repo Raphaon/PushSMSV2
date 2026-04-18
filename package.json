@@ -1,0 +1,29 @@
+{
+  "name": "pushsms-api",
+  "version": "1.0.0",
+  "description": "PushSMS - Multi-tenant SMS SaaS Backend API",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "db:schema": "psql -U postgres -d PushSMS -f src/shared/config/database/schema.sql",
+    "db:seed": "psql -U postgres -d PushSMS -f src/shared/config/database/seed.sql"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "axios": "^1.15.0",
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.4.2",
+    "ejs": "^5.0.1",
+    "express": "^5.2.1",
+    "joi": "^18.1.2",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.1.1",
+    "nodemailer": "^8.0.5",
+    "pg": "^8.20.0",
+    "xlsx": "^0.18.5"
+  }
+}
